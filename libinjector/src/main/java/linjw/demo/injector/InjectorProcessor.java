@@ -17,6 +17,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -62,6 +63,11 @@ public class InjectorProcessor extends AbstractProcessor {
 
         //遍历所有被InjectView注释的元素
         for (Element element : elements) {
+            //如果标注的对象不是FIELD则报错,这个错误其实不会发生因为InjectView的Target已经声明为ElementType.FIELD了
+            if (element.getKind()!= ElementKind.FIELD) {
+                mMessager.printMessage(Diagnostic.Kind.ERROR, "is not a FIELD", element);
+            }
+
             //如果不是View的子类则报错
             if (!isView(element.asType())){
                 mMessager.printMessage(Diagnostic.Kind.ERROR, "is not a View", element);

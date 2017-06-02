@@ -19,6 +19,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -67,6 +68,9 @@ public class InjectorProcessor extends AbstractProcessor {
             if (element.getKind()!= ElementKind.FIELD) {
                 mMessager.printMessage(Diagnostic.Kind.ERROR, "is not a FIELD", element);
             }
+
+            //这里可以先将element转换为VariableElement,但我们这里不需要
+            //VariableElement variableElement = (VariableElement) element;
 
             //如果不是View的子类则报错
             if (!isView(element.asType())){

@@ -21,8 +21,10 @@ public class SecondActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
 
+        //使用findViewById注入被InjectView修饰的成员变量
         ViewInjector.inject(this);
 
+        // ViewInjector.inject(this) 已经将mLabel赋值了,可以直接使用
         mLabel.setText("SecondActivity");
     }
 }

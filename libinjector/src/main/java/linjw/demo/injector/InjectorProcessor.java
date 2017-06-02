@@ -17,13 +17,14 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
-@SupportedAnnotationTypes("linjw.demo.injector.InjectView")
+@SupportedAnnotationTypes({"linjw.demo.injector.InjectView"})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class InjectorProcessor extends AbstractProcessor {
     private static final String GEN_CLASS_SUFFIX = "Injector";
@@ -49,7 +50,7 @@ public class InjectorProcessor extends AbstractProcessor {
         Set<? extends Element> elements = roundEnvironment.getElementsAnnotatedWith(InjectView.class);
 
         //process会被调用三次，只有一次是可以处理InjectView注解的，原因不明
-        if (elements.size()==0) {
+        if (elements.size() == 0) {
             return true;
         }
 
@@ -61,9 +62,11 @@ public class InjectorProcessor extends AbstractProcessor {
 
         //遍历所有被InjectView注释的元素
         for (Element element : elements) {
-            if (element.getKind() != ElementKind.FIELD) {
-                continue;
+            //如果不是View的子类则报错
+            if (!isView(element.asType())){
+                mMessager.printMessage(Diagnostic.Kind.ERROR, "is not a View", element);
             }
+
             //获取所在类的信息
             Element clazz = element.getEnclosingElement();
 
@@ -98,6 +101,20 @@ public class InjectorProcessor extends AbstractProcessor {
         return true;
     }
 
+    //递归判断android.view.View是不是其父类
+    private boolean isView(TypeMirror type) {
+        List<? extends TypeMirror> supers = mTypeUtils.directSupertypes(type);
+        if (supers.size() == 0) {
+            return false;
+        }
+        for (TypeMirror superType : supers) {
+            if (superType.toString().equals("android.view.View") || isView(superType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void addElement(Map<Element, List<Element>> map, Element clazz, Element field) {
         List<Element> list = map.get(clazz);
         if (list == null) {
@@ -117,7 +134,6 @@ public class InjectorProcessor extends AbstractProcessor {
             e.printStackTrace();
         }
     }
-
 
     /**
      * 生成注入代码
